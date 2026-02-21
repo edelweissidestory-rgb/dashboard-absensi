@@ -359,13 +359,14 @@ if mode == "Admin" and password == "risum771":
         )
 
         if st.button("Hapus Data"):
-        c.execute("DELETE FROM absensi WHERE id=?", (id_hapus,))
-        conn.commit()
-        st.success("Data berhasil dihapus!")
-        st.rerun()
-
+            c.execute("DELETE FROM absensi WHERE id=?", (id_hapus,))
+            conn.commit()
+            st.success("Data berhasil dihapus!")
+            st.rerun()
+    
         else:
             st.info("Belum ada data absensi bulan ini")
+
 
 
 
