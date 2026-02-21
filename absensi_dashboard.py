@@ -214,6 +214,9 @@ if st.button("Submit Absen"):
         st.error("Kamu harus berada di kantor untuk absen!")
 
     else:
+        import pytz
+        wib = pytz.timezone("Asia/Jakarta")
+        now_wib = datetime.now(wib)
         tanggal = datetime.now().strftime("%Y-%m-%d")
         jam_sekarang = datetime.now().strftime("%H:%M:%S")
 
@@ -348,4 +351,5 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data absensi bulan ini")
+
 
