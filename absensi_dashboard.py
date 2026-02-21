@@ -153,34 +153,34 @@ if mode == "Admin" and password == "risum771":
         else:
             st.info("Belum ada absensi hari ini")
 
-    # ================= BULANAN =================
+     # ================= BULANAN =================
     with tab2:
 
-    bulan = st.selectbox("Bulan", list(range(1,13)))
-    tahun = st.selectbox("Tahun", list(range(2024,2031)))
+        bulan = st.selectbox("Bulan", list(range(1,13)))
+        tahun = st.selectbox("Tahun", list(range(2024,2031)))
 
-    res = supabase.table("absensi")\
-        .select('id,tanggal,jam_masuk,jam_pulang,status,keterangan,nama:nama_id(nama),posisi:posisi_id(posisi)')\
-        .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
-        .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
-        .execute()
+        res = supabase.table("absensi")\
+            .select('id,tanggal,jam_masuk,jam_pulang,status,keterangan,nama:nama_id(nama),posisi:posisi_id(posisi)')\
+            .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
+            .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
+            .execute()
 
-    if res.data:
-        rows = []
-        for r in res.data:
-            rows.append({
-                "ID": r["id"],
-                "Nama": r["nama"]["nama"],
-                "Posisi": r["posisi"]["posisi"],
-                "Tanggal": r["tanggal"],
-                "Jam Datang": r["jam_masuk"],
-                "Jam Pulang": r["jam_pulang"],
-                "Status": r["status"],
-                "Keterangan": r["keterangan"]
-            })
+        if res.data:
+            rows = []
+            for r in res.data:
+                rows.append({
+                    "ID": r["id"],
+                    "Nama": r["nama"]["nama"],
+                    "Posisi": r["posisi"]["posisi"],
+                    "Tanggal": r["tanggal"],
+                    "Jam Datang": r["jam_masuk"],
+                    "Jam Pulang": r["jam_pulang"],
+                    "Status": r["status"],
+                    "Keterangan": r["keterangan"]
+                })
 
-        df = pd.DataFrame(rows)
-        st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
+            df = pd.DataFrame(rows)
+            st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-    else:
-        st.info("Belum ada data bulan ini")
+        else:
+            st.info("Belum ada data bulan ini")
