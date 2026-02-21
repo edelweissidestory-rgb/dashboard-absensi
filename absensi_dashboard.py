@@ -129,10 +129,10 @@ if mode == "Admin" and password == "risum771":
         today = datetime.now(wib).strftime("%Y-%m-%d")
 
         res = supabase.table("absensi")\
-            .select("id, tanggal, jam_masuk, jam_pulang, status, keterangan, nama: nama_id (nama), posisi: posisi_id (posisi)")\
-            .eq("tanggal", today)\
-            .order("jam_masuk")\
-            .execute()
+    .select("*")\
+    .eq("tanggal", today)\
+    .order("jam_masuk")\
+    .execute()
 
         if res.data:
             rows = []
@@ -159,11 +159,11 @@ if mode == "Admin" and password == "risum771":
         bulan = st.selectbox("Bulan", list(range(1,13)))
         tahun = st.selectbox("Tahun", list(range(2024,2031)))
 
-        res = supabase.table("absensi")\
-            .select('id,tanggal,jam_masuk,jam_pulang,status,keterangan,nama:nama_id(nama),posisi:posisi_id(posisi)')\
-            .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
-            .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
-            .execute()
+res = supabase.table("absensi")\
+    .select("*")\
+    .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
+    .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
+    .execute()
 
         if res.data:
             rows = []
