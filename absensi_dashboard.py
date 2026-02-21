@@ -165,10 +165,10 @@ if mode == "Admin" and password == "risum771":
     # ---------- TAB 2: REKAP BULANAN ----------
     # ---------- TAB 2: REKAP BULANAN ----------
 with tab2:
-    bulan = st.selectbox("Bulan", list(range(1,13)))
-    tahun = st.selectbox("Tahun", list(range(2024,2031)))
+    bulan = st.selectbox("Bulan", list(range(1, 13)))
+    tahun = st.selectbox("Tahun", list(range(2024, 2031)))
 
-    # ambil jumlah hari dalam bulan
+    from calendar import monthrange
     jumlah_hari = monthrange(tahun, bulan)[1]
 
     res = supabase.table("absensi")\
@@ -177,22 +177,25 @@ with tab2:
         .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
         .order("tanggal")\
         .execute()
-        if res.data:
-            rows = []
-            for r in res.data:
-                rows.append({
-                    "Nama": nama_map.get(r["nama_id"], "-"),
-                    "Posisi": posisi_map.get(r["posisi_id"], "-"),
-                    "Tanggal": r["tanggal"],
-                    "Jam Masuk": r["jam_masuk"],
-                    "Jam Pulang": r["jam_pulang"],
-                    "Status": r["status"],
-                    "Keterangan": r["keterangan"]
-                })
-            df = pd.DataFrame(rows)
-            st.dataframe(df, use_container_width=True)
-        else:
-            st.info("Belum ada data bulan ini")
+
+    if res.data:
+        rows = []
+        for r in res.data:
+            rows.append({
+                "Nama": nama_map.get(r["nama_id"], "-"),
+                "Posisi": posisi_map.get(r["posisi_id"], "-"),
+                "Tanggal": r["tanggal"],
+                "Jam Masuk": r["jam_masuk"],
+                "Jam Pulang": r["jam_pulang"],
+                "Status": r["status"],
+                "Keterangan": r["keterangan"]
+            })
+
+        df = pd.DataFrame(rows)
+        st.dataframe(df, use_container_width=True)
+
+    else:
+        st.info("Belum ada data bulan ini")
 
     # ---------- TAB 3: SEMUA DATA (opsional) ----------
     with tab3:
@@ -218,4 +221,5 @@ with tab2:
             st.dataframe(df, use_container_width=True)
         else:
             st.info("Belum ada data")
+
 
