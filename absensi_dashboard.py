@@ -3,6 +3,7 @@ from datetime import datetime
 import pytz
 from supabase import create_client
 import pandas as pd
+from calendar import monthrange
 from geopy.distance import geodesic
 from streamlit_js_eval import get_geolocation
 
@@ -162,17 +163,20 @@ if mode == "Admin" and password == "risum771":
             st.info("Belum ada absensi hari ini")
 
     # ---------- TAB 2: REKAP BULANAN ----------
-    with tab2:
-        bulan = st.selectbox("Bulan", list(range(1,13)))
-        tahun = st.selectbox("Tahun", list(range(2024,2031)))
+    # ---------- TAB 2: REKAP BULANAN ----------
+with tab2:
+    bulan = st.selectbox("Bulan", list(range(1,13)))
+    tahun = st.selectbox("Tahun", list(range(2024,2031)))
 
-        res = supabase.table("absensi")\
-            .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
-            .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
-            .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
-            .order("tanggal")\
-            .execute()
+    # ambil jumlah hari dalam bulan
+    jumlah_hari = monthrange(tahun, bulan)[1]
 
+    res = supabase.table("absensi")\
+        .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
+        .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
+        .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
+        .order("tanggal")\
+        .execute()
         if res.data:
             rows = []
             for r in res.data:
@@ -214,3 +218,4 @@ if mode == "Admin" and password == "risum771":
             st.dataframe(df, use_container_width=True)
         else:
             st.info("Belum ada data")
+
