@@ -22,15 +22,12 @@ password = ""
 if mode == "Admin":
     password = st.sidebar.text_input("Password Admin", type="password")
 
-# ================= LOAD MASTER DATA =================
+# ================= LOAD MASTER =================
 nama_res = supabase.table("nama").select("*").order("nama").execute()
 posisi_res = supabase.table("posisi").select("*").order("posisi").execute()
 
-nama_options = nama_res.data
-posisi_options = posisi_res.data
-
-nama_dict = {n["nama"]: n["id"] for n in nama_options}
-posisi_dict = {p["posisi"]: p["id"] for p in posisi_options}
+nama_dict = {n["nama"]: n["id"] for n in nama_res.data}
+posisi_dict = {p["posisi"]: p["id"] for p in posisi_res.data}
 
 selected_nama = st.selectbox("Pilih Nama", list(nama_dict.keys()))
 selected_posisi = st.selectbox("Posisi", list(posisi_dict.keys()))
@@ -39,11 +36,10 @@ datang_pulang = st.radio("Datang / Pulang", ["Datang", "Pulang"])
 status = st.radio("Status", ["Hadir", "Izin", "Sakit", "Lembur"])
 
 keterangan = ""
-
 if status != "Hadir":
     keterangan = st.text_area("Keterangan")
 
-# ================= SUBMIT ABSEN =================
+# ================= SUBMIT =================
 if st.button("Submit Absen"):
 
     now_wib = datetime.now(wib)
@@ -85,7 +81,7 @@ if st.button("Submit Absen"):
 
             st.success("Absen pulang berhasil!")
 
-# ================= ADMIN DASHBOARD =================
+# ================= ADMIN =================
 if mode == "Admin" and password == "risum771":
 
     st.divider()
@@ -98,7 +94,7 @@ if mode == "Admin" and password == "risum771":
 
     if res.data:
 
-        # ambil master nama & posisi
+        # ambil master
         nama_master = supabase.table("nama").select("*").execute().data
         posisi_master = supabase.table("posisi").select("*").execute().data
 
@@ -106,9 +102,9 @@ if mode == "Admin" and password == "risum771":
         posisi_map = {p["id"]: p["posisi"] for p in posisi_master}
 
         rows = []
-
         for r in res.data:
             rows.append({
+                "ID": r["id"],
                 "Nama": nama_map.get(r["nama_id"], "-"),
                 "Posisi": posisi_map.get(r["posisi_id"], "-"),
                 "Tanggal": r["tanggal"],
@@ -119,26 +115,25 @@ if mode == "Admin" and password == "risum771":
             })
 
         df = pd.DataFrame(rows)
-        st.dataframe(df, use_container_width=True)
-        st.subheader("Hapus Data Absensi")
+        st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-id_hapus = st.selectbox(
-    "Pilih data yang mau dihapus",
-    res.data,
-    format_func=lambda x: f"{x['tanggal']} - {x['nama_id']} - {x['status']}"
-)
+        # ================= HAPUS DATA =================
+        st.subheader("🗑 Hapus Data")
 
-if st.button("Hapus Data"):
-    supabase.table("absensi")\
-        .delete()\
-        .eq("id", id_hapus["id"])\
-        .execute()
+        pilih = st.selectbox(
+            "Pilih data yang mau dihapus",
+            rows,
+            format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}"
+        )
 
-    st.success("Data berhasil dihapus")
-    st.rerun()
+        if st.button("Hapus Data"):
+            supabase.table("absensi")\
+                .delete()\
+                .eq("id", pilih["ID"])\
+                .execute()
+
+            st.success("Data berhasil dihapus")
+            st.rerun()
 
     else:
         st.info("Belum ada data absensi")
-
-
-
