@@ -341,34 +341,28 @@ if mode == "Admin" and password == "risum771":
 
         data_bulan = c.fetchall()
 
-        if data_bulan:
-            df_bulan = pd.DataFrame(data_bulan, columns=[
-                "ID", "Nama", "Posisi", "Tanggal",
-                "Jam Datang", "Jam Pulang",
-                "Status", "Keterangan"
-            ])
+       if data_bulan:
+    df_bulan = pd.DataFrame(data_bulan, columns=[
+        "ID", "Nama", "Posisi", "Tanggal",
+        "Jam Datang", "Jam Pulang",
+        "Status", "Keterangan"
+    ])
 
-            st.dataframe(df_bulan.drop(columns=["ID"]), use_container_width=True)
+    st.dataframe(df_bulan.drop(columns=["ID"]), use_container_width=True)
 
-        st.markdown("### 🗑️ Hapus Data Absensi")
+    st.markdown("### 🗑️ Hapus Data Absensi")
 
-        id_hapus = st.selectbox(
+    id_hapus = st.selectbox(
         "Pilih data yang mau dihapus",
         df_bulan["ID"],
         format_func=lambda x: f"{df_bulan[df_bulan['ID']==x]['Nama'].values[0]} - {df_bulan[df_bulan['ID']==x]['Tanggal'].values[0]} - {df_bulan[df_bulan['ID']==x]['Jam Datang'].values[0]}"
-        )
+    )
 
-        if st.button("Hapus Data"):
-            c.execute("DELETE FROM absensi WHERE id=?", (id_hapus,))
-            conn.commit()
-            st.success("Data berhasil dihapus!")
-            st.rerun()
-    
-        else:
-            st.info("Belum ada data absensi bulan ini")
+    if st.button("Hapus Data"):
+        c.execute("DELETE FROM absensi WHERE id=?", (id_hapus,))
+        conn.commit()
+        st.success("Data berhasil dihapus!")
+        st.rerun()
 
-
-
-
-
-
+else:
+    st.info("Belum ada data absensi bulan ini")
