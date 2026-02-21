@@ -9,7 +9,7 @@ from streamlit_js_eval import get_geolocation
 from supabase import create_client
 
 SUPABASE_URL = "https://jogrrtkttwzlqkveujxa.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3JydGt0dHd6bHFrdmV1anhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2OTI3NDQsImV4cCI6MjA4NzI2ODc0NH0.5tSvQvbqXTNCukMpWE6KDzDmzZLkaCGcRxHr0zATDqw"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -347,4 +347,5 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data absensi bulan ini")
+
 
