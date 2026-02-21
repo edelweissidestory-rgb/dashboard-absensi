@@ -27,7 +27,7 @@ if mode == "Admin":
     password = st.sidebar.text_input("Password Admin", type="password")
 
 # ================= GPS (untuk karyawan) =================
-kantor = (-7.76479975133688, 110.48149545435504)
+kantor = (-7.7509616760437385, 110.36579129415266)
 radius = 200
 
 def gps_block():
@@ -232,3 +232,4 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data")
+
