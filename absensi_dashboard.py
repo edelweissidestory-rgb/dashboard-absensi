@@ -148,8 +148,8 @@ section[data-testid="stSidebar"] span {
 </style>
 """, unsafe_allow_html=True)
 # ================== Koordinat Kantor ==================
-kantor = (-7.7509616760437385, 110.36579129415266)
-radius = 150
+kantor = (-7.76479975133688, 110.48149545435504)
+radius = 200
 # ================== Ambil Lokasi GPS ==================
 loc = get_geolocation()
 
@@ -314,6 +314,7 @@ if mode == "Admin" and password == "risum771":
     else:
 
         st.info("Belum ada absensi hari ini")
+
 
 
 
