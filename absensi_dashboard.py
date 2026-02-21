@@ -18,7 +18,7 @@ test = supabase.table("nama").select("*").limit(1).execute()
 st.write("HASIL TEST SUPABASE:", test)
 
 # ================== HEADER ==================
-st_autorefresh(interval=1000, key="clockrefresh")
+st_autorefresh(interval=60000, key="clockrefresh")
 
 wib = pytz.timezone("Asia/Jakarta")
 now = datetime.now(wib).strftime("%A, %d %B %Y | %H:%M:%S")
@@ -198,5 +198,6 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data bulan ini")
+
 
 
