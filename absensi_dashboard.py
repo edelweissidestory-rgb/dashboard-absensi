@@ -137,16 +137,15 @@ if mode == "Admin" and password == "risum771":
         if res.data:
             rows = []
             for r in res.data:
-                rows.append({
-                    "ID": r["id"],
-                    "Nama": r["nama"]["nama"],
-                    "Posisi": r["posisi"]["posisi"],
-                    "Tanggal": r["tanggal"],
-                    "Jam Datang": r["jam_masuk"],
-                    "Jam Pulang": r["jam_pulang"],
-                    "Status": r["status"],
-                    "Keterangan": r["keterangan"]
-                })
+                rrows.append({
+    "Nama ID": r["nama_id"],
+    "Posisi ID": r["posisi_id"],
+    "Tanggal": r["tanggal"],
+    "Jam Datang": r["jam_masuk"],
+    "Jam Pulang": r["jam_pulang"],
+    "Status": r["status"],
+    "Keterangan": r["keterangan"]
+})
 
             df = pd.DataFrame(rows)
             st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
@@ -169,18 +168,18 @@ res = supabase.table("absensi")\
             rows = []
             for r in res.data:
                 rows.append({
-                    "ID": r["id"],
-                    "Nama": r["nama"]["nama"],
-                    "Posisi": r["posisi"]["posisi"],
-                    "Tanggal": r["tanggal"],
-                    "Jam Datang": r["jam_masuk"],
-                    "Jam Pulang": r["jam_pulang"],
-                    "Status": r["status"],
-                    "Keterangan": r["keterangan"]
-                })
+    "Nama ID": r["nama_id"],
+    "Posisi ID": r["posisi_id"],
+    "Tanggal": r["tanggal"],
+    "Jam Datang": r["jam_masuk"],
+    "Jam Pulang": r["jam_pulang"],
+    "Status": r["status"],
+    "Keterangan": r["keterangan"]
+})
 
             df = pd.DataFrame(rows)
             st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
         else:
             st.info("Belum ada data bulan ini")
+
