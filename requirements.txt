@@ -5,4 +5,5 @@ streamlit-js-eval
 streamlit-autorefresh
 pytz
 supabase
+postgrest
 
