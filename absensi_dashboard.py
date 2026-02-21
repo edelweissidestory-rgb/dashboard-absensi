@@ -129,7 +129,7 @@ if mode == "Admin" and password == "risum771":
         today = datetime.now(wib).strftime("%Y-%m-%d")
 
         res = supabase.table("absensi")\
-            .select("id, tanggal, jam_masuk, jam_pulang, status, keterangan, nama(nama), posisi(posisi)")\
+            .select("id, tanggal, jam_masuk, jam_pulang, status, keterangan, nama: nama_id (nama), posisi: posisi_id (posisi)")\
             .eq("tanggal", today)\
             .order("jam_masuk")\
             .execute()
@@ -160,7 +160,7 @@ if mode == "Admin" and password == "risum771":
         tahun = st.selectbox("Tahun", list(range(2024,2031)))
 
         res = supabase.table("absensi")\
-            .select("id, tanggal, jam_masuk, jam_pulang, status, keterangan, nama(nama), posisi(posisi)")\
+            .select("id, tanggal, jam_masuk, jam_pulang, status, keterangan, nama: nama_id (nama), posisi: posisi_id (posisi)")\
             .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
             .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
             .execute()
@@ -198,6 +198,7 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data bulan ini")
+
 
 
 
