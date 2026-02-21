@@ -312,57 +312,58 @@ if mode == "Admin" and password == "risum771":
 
 
     # ================= TAB BULANAN =================
-    with tab2:
+with tab2:
 
-        import pandas as pd
+    import pandas as pd
 
-        bulan = st.selectbox(
-            "Pilih Bulan",
-            list(range(1,13)),
-            format_func=lambda x: datetime(2000, x, 1).strftime("%B")
-        )
-
-        tahun = st.selectbox(
-            "Pilih Tahun",
-            list(range(2024, 2031))
-        )
-
-        c.execute("""
-        SELECT a.id, n.nama, p.posisi, a.tanggal,
-               a.jam_masuk, a.jam_pulang,
-               a.status, a.keterangan
-        FROM absensi a
-        JOIN nama n ON a.nama_id = n.id
-        JOIN posisi p ON a.posisi_id = p.id
-        WHERE strftime('%m', a.tanggal) = ?
-        AND strftime('%Y', a.tanggal) = ?
-        ORDER BY a.tanggal ASC
-        """, (str(bulan).zfill(2), str(tahun)))
-
-        data_bulan = c.fetchall()
-
-       if data_bulan:
-    df_bulan = pd.DataFrame(data_bulan, columns=[
-        "ID", "Nama", "Posisi", "Tanggal",
-        "Jam Datang", "Jam Pulang",
-        "Status", "Keterangan"
-    ])
-
-    st.dataframe(df_bulan.drop(columns=["ID"]), use_container_width=True)
-
-    st.markdown("### 🗑️ Hapus Data Absensi")
-
-    id_hapus = st.selectbox(
-        "Pilih data yang mau dihapus",
-        df_bulan["ID"],
-        format_func=lambda x: f"{df_bulan[df_bulan['ID']==x]['Nama'].values[0]} - {df_bulan[df_bulan['ID']==x]['Tanggal'].values[0]} - {df_bulan[df_bulan['ID']==x]['Jam Datang'].values[0]}"
+    bulan = st.selectbox(
+        "Pilih Bulan",
+        list(range(1,13)),
+        format_func=lambda x: datetime(2000, x, 1).strftime("%B")
     )
 
-    if st.button("Hapus Data"):
-        c.execute("DELETE FROM absensi WHERE id=?", (id_hapus,))
-        conn.commit()
-        st.success("Data berhasil dihapus!")
-        st.rerun()
+    tahun = st.selectbox(
+        "Pilih Tahun",
+        list(range(2024, 2031))
+    )
 
-else:
-    st.info("Belum ada data absensi bulan ini")
+    c.execute("""
+    SELECT a.id, n.nama, p.posisi, a.tanggal,
+           a.jam_masuk, a.jam_pulang,
+           a.status, a.keterangan
+    FROM absensi a
+    JOIN nama n ON a.nama_id = n.id
+    JOIN posisi p ON a.posisi_id = p.id
+    WHERE strftime('%m', a.tanggal) = ?
+    AND strftime('%Y', a.tanggal) = ?
+    ORDER BY a.tanggal ASC
+    """, (str(bulan).zfill(2), str(tahun)))
+
+    data_bulan = c.fetchall()
+
+    if data_bulan:
+
+        df_bulan = pd.DataFrame(data_bulan, columns=[
+            "ID", "Nama", "Posisi", "Tanggal",
+            "Jam Datang", "Jam Pulang",
+            "Status", "Keterangan"
+        ])
+
+        st.dataframe(df_bulan.drop(columns=["ID"]), use_container_width=True)
+
+        st.markdown("### 🗑️ Hapus Data Absensi")
+
+        id_hapus = st.selectbox(
+            "Pilih data yang mau dihapus",
+            options=df_bulan["ID"].tolist(),
+            format_func=lambda x: f"{df_bulan[df_bulan['ID']==x]['Nama'].values[0]} - {df_bulan[df_bulan['ID']==x]['Tanggal'].values[0]}"
+        )
+
+        if st.button("Hapus Data"):
+            c.execute("DELETE FROM absensi WHERE id=?", (id_hapus,))
+            conn.commit()
+            st.success("Data berhasil dihapus!")
+            st.rerun()
+
+    else:
+        st.info("Belum ada data absensi bulan ini")
