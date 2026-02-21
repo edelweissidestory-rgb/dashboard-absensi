@@ -87,6 +87,11 @@ if mode == "Admin" and password == "risum771":
     st.divider()
     st.subheader("📊 Rekap Absensi")
 
+    tab1, tab2 = st.tabs(["Semua Data", "Rekap Bulanan"])
+
+# ================= SEMUA DATA =================
+with tab1:
+
     res = supabase.table("absensi")\
         .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
         .order("tanggal", desc=True)\
@@ -94,7 +99,6 @@ if mode == "Admin" and password == "risum771":
 
     if res.data:
 
-        # ambil master nama & posisi
         nama_master = supabase.table("nama").select("*").execute().data
         posisi_master = supabase.table("posisi").select("*").execute().data
 
@@ -102,7 +106,41 @@ if mode == "Admin" and password == "risum771":
         posisi_map = {p["id"]: p["posisi"] for p in posisi_master}
 
         rows = []
+        for r in res.data:
+            rows.append({
+                "Nama": nama_map.get(r["nama_id"], "-"),
+                "Posisi": posisi_map.get(r["posisi_id"], "-"),
+                "Tanggal": r["tanggal"],
+                "Jam Masuk": r["jam_masuk"],
+                "Jam Pulang": r["jam_pulang"],
+                "Status": r["status"],
+                "Keterangan": r["keterangan"]
+            })
 
+        df = pd.DataFrame(rows)
+        st.dataframe(df, use_container_width=True)
+
+# ================= BULANAN =================
+with tab2:
+
+    bulan = st.selectbox("Pilih Bulan", list(range(1,13)))
+    tahun = st.selectbox("Pilih Tahun", list(range(2024,2031)))
+
+    res = supabase.table("absensi")\
+        .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
+        .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
+        .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
+        .execute()
+
+    if res.data:
+
+        nama_master = supabase.table("nama").select("*").execute().data
+        posisi_master = supabase.table("posisi").select("*").execute().data
+
+        nama_map = {n["id"]: n["nama"] for n in nama_master}
+        posisi_map = {p["id"]: p["posisi"] for p in posisi_master}
+
+        rows = []
         for r in res.data:
             rows.append({
                 "Nama": nama_map.get(r["nama_id"], "-"),
@@ -118,4 +156,4 @@ if mode == "Admin" and password == "risum771":
         st.dataframe(df, use_container_width=True)
 
     else:
-        st.info("Belum ada data absensi")
+        st.info("Belum ada data bulan ini")
