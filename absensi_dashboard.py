@@ -18,21 +18,52 @@ except:
 
 from streamlit_autorefresh import st_autorefresh
 
-col1, col2, col3 = st.columns([1,2,1])
+# ===== HEADER RAPI CENTER =====
+st.markdown("""
+<style>
+.header {
+    text-align: center;
+    margin-top: -20px;
+}
 
-with col2:
-    st.image("logo.png", width=200)
-    st.markdown("<h1 style='text-align:center;'>Dashboard Absensi Staff PT RISUM</h1>", unsafe_allow_html=True)
+.logo {
+    margin-bottom: -20px;
+}
 
-# auto refresh tiap 1 detik
-st_autorefresh(interval=1000, key="clockrefresh")
+.judul {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: -10px;
+    color: #1b5e20;
+}
 
-# tampilkan jam
-now = datetime.now().strftime("%A, %d %B %Y | %H:%M:%S")
+.jam {
+    font-size: 16px;
+    color: #444;
+    margin-top: 0px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="header">', unsafe_allow_html=True)
+
+st.image("logo.png", width=260)
+
 st.markdown(
-    f"<h3 style='text-align:center; color:#2e7d32;'>🕒 {now}</h3>",
+    '<div class="judul">Dashboard Absensi Staff PT RISUM</div>',
     unsafe_allow_html=True
 )
+
+st_autorefresh(interval=1000, key="clockrefresh")
+
+now = datetime.now().strftime("%A, %d %B %Y | %H:%M:%S")
+
+st.markdown(
+    f'<div class="jam">🕒 {now}</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 mode = st.sidebar.selectbox("Login Sebagai", ["Karyawan", "Admin"])
 
@@ -283,6 +314,7 @@ if mode == "Admin" and password == "risum771":
     else:
 
         st.info("Belum ada absensi hari ini")
+
 
 
 
