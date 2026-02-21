@@ -1,8 +1,6 @@
 import streamlit as st
 from datetime import datetime
 import pytz
-from geopy.distance import geodesic
-from streamlit_js_eval import get_geolocation
 from supabase import create_client
 import pandas as pd
 
@@ -24,9 +22,9 @@ password = ""
 if mode == "Admin":
     password = st.sidebar.text_input("Password Admin", type="password")
 
-# ================= LOAD MASTER =================
-nama_res = supabase.table("nama").select("*").execute()
-posisi_res = supabase.table("posisi").select("*").execute()
+# ================= LOAD MASTER DATA =================
+nama_res = supabase.table("nama").select("*").order("nama").execute()
+posisi_res = supabase.table("posisi").select("*").order("posisi").execute()
 
 nama_dict = {n["nama"]: n["id"] for n in nama_res.data}
 posisi_dict = {p["posisi"]: p["id"] for p in posisi_res.data}
@@ -38,34 +36,71 @@ datang_pulang = st.radio("Datang / Pulang", ["Datang", "Pulang"])
 status = st.radio("Status", ["Hadir", "Izin", "Sakit", "Lembur"])
 keterangan = st.text_area("Keterangan")
 
-# ================= SUBMIT =================
+# ================= SUBMIT ABSEN =================
 if st.button("Submit Absen"):
 
     now_wib = datetime.now(wib)
     tanggal = now_wib.strftime("%Y-%m-%d")
     jam = now_wib.strftime("%H:%M:%S")
 
-    supabase.table("absensi").insert({
-        "nama_id": nama_dict[selected_nama],
-        "posisi_id": posisi_dict[selected_posisi],
-        "tanggal": tanggal,
-        "jam_masuk": jam,
-        "status": status,
-        "keterangan": keterangan
-    }).execute()
+    cek = supabase.table("absensi")\
+        .select("*")\
+        .eq("nama_id", nama_dict[selected_nama])\
+        .eq("tanggal", tanggal)\
+        .execute()
 
-    st.success("Absen berhasil!")
+    if datang_pulang == "Datang":
 
-# ================= ADMIN =================
+        if cek.data:
+            st.warning("Sudah absen datang hari ini")
+        else:
+            supabase.table("absensi").insert({
+                "nama_id": nama_dict[selected_nama],
+                "posisi_id": posisi_dict[selected_posisi],
+                "tanggal": tanggal,
+                "jam_masuk": jam,
+                "status": status,
+                "keterangan": keterangan
+            }).execute()
+
+            st.success("Absen datang berhasil!")
+
+    else:
+
+        if not cek.data:
+            st.warning("Belum absen datang")
+        else:
+            supabase.table("absensi")\
+                .update({"jam_pulang": jam})\
+                .eq("nama_id", nama_dict[selected_nama])\
+                .eq("tanggal", tanggal)\
+                .execute()
+
+            st.success("Absen pulang berhasil!")
+
+# ================= ADMIN DASHBOARD =================
 if mode == "Admin" and password == "risum771":
 
     st.divider()
     st.subheader("Rekap Absensi")
 
-    res = supabase.table("absensi").select("*").execute()
+    res = supabase.table("absensi").select("*").order("tanggal", desc=True).execute()
 
     if res.data:
-        df = pd.DataFrame(res.data)
+        rows = []
+        for r in res.data:
+            rows.append({
+                "Nama ID": r["nama_id"],
+                "Posisi ID": r["posisi_id"],
+                "Tanggal": r["tanggal"],
+                "Jam Masuk": r["jam_masuk"],
+                "Jam Pulang": r["jam_pulang"],
+                "Status": r["status"],
+                "Keterangan": r["keterangan"]
+            })
+
+        df = pd.DataFrame(rows)
         st.dataframe(df, use_container_width=True)
+
     else:
-        st.info("Belum ada data")
+        st.info("Belum ada data absensi")
