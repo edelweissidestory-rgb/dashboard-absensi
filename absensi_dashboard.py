@@ -274,44 +274,44 @@ if mode == "Admin" and password == "risum771":
 
     tab1, tab2 = st.tabs(["📊 Rekap Harian", "📅 Rekap Bulanan"])
 
-    # ================= TAB HARIAN =================
-    with tab1:
+# ================= TAB HARIAN =================
+with tab1:
 
-        wib = pytz.timezone("Asia/Jakarta")
-        today = datetime.now(wib).strftime("%Y-%m-%d")
+    wib = pytz.timezone("Asia/Jakarta")
+    today = datetime.now(wib).strftime("%Y-%m-%d")
 
-        c.execute("""
-        SELECT a.id, n.nama, p.posisi, a.tanggal,
-               a.jam_masuk, a.jam_pulang,
-               a.status, a.keterangan
-        FROM absensi a
-        JOIN nama n ON a.nama_id = n.id
-        JOIN posisi p ON a.posisi_id = p.id
-        WHERE a.tanggal = ?
-        ORDER BY 
-        a.tanggal DESC,
-        CASE WHEN a.jam_pulang IS NULL THEN 0 ELSE 1 END,
-        a.jam_masuk ASC
-        """, (today,))
+    c.execute("""
+    SELECT a.id, n.nama, p.posisi, a.tanggal,
+           a.jam_masuk, a.jam_pulang,
+           a.status, a.keterangan
+    FROM absensi a
+    JOIN nama n ON a.nama_id = n.id
+    JOIN posisi p ON a.posisi_id = p.id
+    WHERE a.tanggal = ?
+    ORDER BY 
+    a.tanggal DESC,
+    CASE WHEN a.jam_pulang IS NULL THEN 0 ELSE 1 END,
+    a.jam_masuk ASC
+    """, (today,))
 
-        data = c.fetchall()
+    data = c.fetchall()
 
-        if data:
-            import pandas as pd
+    if data:
+        import pandas as pd
 
-            df = pd.DataFrame(data, columns=[
-                "ID", "Nama", "Posisi", "Tanggal",
-                "Jam Datang", "Jam Pulang",
-                "Status", "Keterangan"
-            ])
+        df = pd.DataFrame(data, columns=[
+            "ID", "Nama", "Posisi", "Tanggal",
+            "Jam Datang", "Jam Pulang",
+            "Status", "Keterangan"
+        ])
 
-            st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
+        st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-        else:
-            st.info("Belum ada absensi hari ini")
+    else:
+        st.info("Belum ada absensi hari ini")
 
 
-    # ================= TAB BULANAN =================
+# ================= TAB BULANAN =================
 with tab2:
 
     import pandas as pd
