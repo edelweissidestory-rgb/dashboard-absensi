@@ -37,7 +37,11 @@ selected_posisi = st.selectbox("Posisi", list(posisi_dict.keys()))
 
 datang_pulang = st.radio("Datang / Pulang", ["Datang", "Pulang"])
 status = st.radio("Status", ["Hadir", "Izin", "Sakit", "Lembur"])
-keterangan = st.text_area("Keterangan")
+
+keterangan = ""
+
+if status != "Hadir":
+    keterangan = st.text_area("Keterangan")
 
 # ================= SUBMIT ABSEN =================
 if st.button("Submit Absen"):
@@ -119,4 +123,5 @@ if mode == "Admin" and password == "risum771":
 
     else:
         st.info("Belum ada data absensi")
+
 
