@@ -47,7 +47,7 @@ st.markdown("""
 
 st.markdown('<div class="header">', unsafe_allow_html=True)
 
-st.image("logo.png", width=260)
+st.image("logo.png", width=170)
 
 st.markdown(
     '<div class="judul">Dashboard Absensi Staff PT RISUM</div>',
@@ -314,6 +314,7 @@ if mode == "Admin" and password == "risum771":
     else:
 
         st.info("Belum ada absensi hari ini")
+
 
 
 
