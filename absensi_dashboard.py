@@ -9,10 +9,10 @@ from streamlit_js_eval import get_geolocation
 
 # ================= SUPABASE =================
 SUPABASE_URL = "https://jogrrtkttwzlqkveujxa.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3JydGt0dHd6bHFrdmV1anhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2OTI3NDQsImV4cCI6MjA4NzI2ODc0NH0.5tSvQvbqXTNCukMpWE6KDzDmzZLkaCGcRxHr0zATDqw"
+SUPABASE_KEY = "ISI_SUPABASE_KEY_KAMU"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ================= STARTUP MODERN THEME =================
+# ================= STARTUP MODERN THEME (FIX TEXT) =================
 st.markdown("""
 <style>
 .stApp {
@@ -21,56 +21,72 @@ st.markdown("""
 }
 
 [data-testid="stSidebar"] {
-    background: rgba(255,255,255,0.6);
-    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(18px);
     border-right: 1px solid rgba(255,255,255,0.4);
 }
 
 .block-container {
-    background: rgba(255,255,255,0.45);
-    backdrop-filter: blur(22px);
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(18px);
     border-radius: 24px;
     padding: 2rem;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
 }
 
+html, body, p, span, label, div {
+    color: #0f172a !important;
+}
+
 h1 {
-    color: #0f172a;
+    color: #020617 !important;
     font-weight: 800;
 }
 
 h2, h3 {
-    color: #1e293b;
+    color: #0f172a !important;
     font-weight: 600;
 }
 
 .stButton > button {
     background: linear-gradient(90deg, #00c6ff 0%, #00ffb3 100%);
-    color: white;
+    color: white !important;
     border-radius: 16px;
     border: none;
     padding: 0.6rem 1.2rem;
     font-weight: 600;
     box-shadow: 0 8px 20px rgba(0, 198, 255, 0.25);
-    transition: all 0.2s ease;
-}
-
-.stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(0, 255, 179, 0.35);
 }
 
 .stSelectbox > div > div,
 .stTextInput > div > div,
 .stTextArea textarea {
-    background: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.9);
     border-radius: 14px;
+    color: #020617 !important;
+}
+
+.stRadio label {
+    color: #020617 !important;
+}
+
+button[data-baseweb="tab"] {
+    color: #020617 !important;
 }
 
 button[data-baseweb="tab"][aria-selected="true"] {
     background: linear-gradient(90deg, #00c6ff, #00ffb3);
-    color: white;
+    color: white !important;
     border-radius: 12px;
+}
+
+thead tr th {
+    background: rgba(0,198,255,0.15) !important;
+    color: #020617 !important;
+}
+
+tbody tr td {
+    color: #020617 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -80,14 +96,14 @@ wib = pytz.timezone("Asia/Jakarta")
 def now_wib():
     return datetime.now(wib)
 
-# ================= HEADER DENGAN LOGO =================
+# ================= HEADER LOGO =================
 col1, col2 = st.columns([1,5])
 
 with col1:
     st.image("logo.png", width=70)
 
 with col2:
-    st.markdown(f"""
+    st.markdown("""
     <h1 style='margin-bottom:0;'>Dashboard Absensi</h1>
     <p style='margin-top:0;color:#64748b;'>PT RISUM</p>
     """, unsafe_allow_html=True)
@@ -197,7 +213,7 @@ if mode == "Admin" and password == "risum771":
 
     tab1, tab2, tab3 = st.tabs(["Hari Ini", "Bulanan", "Semua Data"])
 
-    # TAB 1
+    # TAB HARI INI
     with tab1:
         today = now_wib().strftime("%Y-%m-%d")
 
@@ -224,7 +240,7 @@ if mode == "Admin" and password == "risum771":
         else:
             st.info("Belum ada absensi hari ini")
 
-    # TAB 2
+    # TAB BULANAN
     with tab2:
         bulan = st.selectbox("Bulan", list(range(1,13)))
         tahun = st.selectbox("Tahun", list(range(2024,2031)))
@@ -253,7 +269,7 @@ if mode == "Admin" and password == "risum771":
         else:
             st.info("Belum ada data bulan ini")
 
-    # TAB 3
+    # TAB SEMUA DATA
     with tab3:
         res = supabase.table("absensi")\
             .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
