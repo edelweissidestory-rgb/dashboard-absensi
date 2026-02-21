@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 from datetime import datetime
+import pytz
 import time
 from geopy.distance import geodesic
 from streamlit_js_eval import get_geolocation
@@ -56,7 +57,8 @@ st.markdown(
 
 st_autorefresh(interval=1000, key="clockrefresh")
 
-now = datetime.now().strftime("%A, %d %B %Y | %H:%M:%S")
+wib = pytz.timezone("Asia/Jakarta")
+now = datetime.now(wib).strftime("%A, %d %B %Y | %H:%M:%S")
 
 st.markdown(
     f'<div class="jam">🕒 {now}</div>',
@@ -346,3 +348,4 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data absensi bulan ini")
+
