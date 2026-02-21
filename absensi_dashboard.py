@@ -117,7 +117,6 @@ if mode == "Karyawan":
                 st.success("Absen pulang berhasil!")
 
 # ================= MODE ADMIN (LAPTOP) =================
-# ================= MODE ADMIN (LAPTOP) =================
 if mode == "Admin" and password == "risum771":
 
     st.divider()
@@ -151,6 +150,24 @@ if mode == "Admin" and password == "risum771":
 
             df = pd.DataFrame(rows)
             st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
+
+            # ================= HAPUS DATA =================
+            st.subheader("🗑 Hapus Data Absensi")
+
+            pilih = st.selectbox(
+                "Pilih data yang mau dihapus",
+                rows,
+                format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}"
+            )
+
+            if st.button("Hapus Data"):
+                supabase.table("absensi")\
+                    .delete()\
+                    .eq("id", pilih["ID"])\
+                    .execute()
+
+                st.success("Data berhasil dihapus")
+                st.rerun()
 
         else:
             st.info("Belum ada absensi hari ini")
