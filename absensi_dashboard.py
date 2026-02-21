@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 from datetime import datetime
+import time
 from geopy.distance import geodesic
 from streamlit_js_eval import get_geolocation
 
@@ -15,7 +16,20 @@ except:
     pass
 
 
-st.title("Dashboard Absensi Staff PT RISUM")
+from streamlit_autorefresh import st_autorefresh
+
+st.markdown("<h1>📊 Dashboard Absensi Staff PT RISUM</h1>", unsafe_allow_html=True)
+
+# auto refresh tiap 1 detik
+st_autorefresh(interval=1000, key="clockrefresh")
+
+# tampilkan jam
+now = datetime.now().strftime("%A, %d %B %Y | %H:%M:%S")
+st.markdown(
+    f"<h3 style='text-align:center; color:#2e7d32;'>🕒 {now}</h3>",
+    unsafe_allow_html=True
+)
+
 mode = st.sidebar.selectbox("Login Sebagai", ["Karyawan", "Admin"])
 
 if mode == "Admin":
@@ -25,40 +39,79 @@ if mode == "Admin":
 st.markdown("""
 <style>
 
+/* background utama */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #e8f5e9, #ffffff);
+    background: #f4f6f9;
 }
 
+/* judul */
 h1 {
-    color: #2e7d32;
+    color: #1b5e20;
     text-align: center;
+    font-weight: 700;
 }
 
-.block-container {
-    padding-top: 2rem;
+/* semua text */
+label, p, span {
+    color: #111 !important;
+    font-size: 15px;
 }
 
+/* selectbox */
+.stSelectbox > div {
+    background: white;
+    border-radius: 10px;
+}
+
+/* radio */
+.stRadio label {
+    color: #111 !important;
+}
+
+/* tombol */
+.stButton>button {
+    background-color: #2e7d32;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    height: 45px;
+}
+
+/* kotak lokasi valid */
 .kotak-hijau {
     background-color: #e8f5e9;
     padding: 20px;
     border-radius: 12px;
-    border-left: 6px solid #2e7d32;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    margin-bottom: 15px;
+    border-left: 8px solid #2e7d32;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    color: #1b5e20;
 }
 
+/* kotak lokasi tidak valid */
 .kotak-merah {
     background-color: #ffebee;
     padding: 20px;
     border-radius: 12px;
-    border-left: 6px solid #c62828;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    margin-bottom: 15px;
+    border-left: 8px solid #c62828;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    color: #7f0000;
+    font-weight: 600;
+}
+
+/* sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #1e1e2f;
+}
+
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span {
+    color: white !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
 # ================== Koordinat Kantor ==================
 kantor = (-7.7509616760437385, 110.36579129415266)
 radius = 150
@@ -224,4 +277,5 @@ if mode == "Admin" and password == "risum771":
             st.rerun()
 
     else:
+
         st.info("Belum ada absensi hari ini")
