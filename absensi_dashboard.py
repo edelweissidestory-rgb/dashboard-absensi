@@ -13,6 +13,10 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# 🔥 TEST KONEKSI SUPABASE (TARUH DI SINI)
+test = supabase.table("nama").select("*").limit(1).execute()
+st.write("HASIL TEST SUPABASE:", test)
+
 # ================== HEADER ==================
 st_autorefresh(interval=1000, key="clockrefresh")
 
@@ -194,4 +198,5 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data bulan ini")
+
 
