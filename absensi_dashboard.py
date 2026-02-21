@@ -3,6 +3,8 @@ from datetime import datetime
 import pytz
 from supabase import create_client
 import pandas as pd
+from geopy.distance import geodesic
+from streamlit_js_eval import get_geolocation
 
 # ================= SUPABASE =================
 SUPABASE_URL = "https://jogrrtkttwzlqkveujxa.supabase.co"
@@ -21,6 +23,26 @@ mode = st.sidebar.selectbox("Login Sebagai", ["Karyawan", "Admin"])
 password = ""
 if mode == "Admin":
     password = st.sidebar.text_input("Password Admin", type="password")
+
+# ================= GPS =================
+kantor = (-7.76479975133688, 110.48149545435504)
+radius = 200
+
+loc = get_geolocation()
+lokasi_valid = False
+
+if loc:
+    lat = loc["coords"]["latitude"]
+    lon = loc["coords"]["longitude"]
+    jarak = geodesic(kantor, (lat, lon)).meters
+
+    if jarak <= radius:
+        lokasi_valid = True
+        st.success(f"📍 Dalam area kantor ({round(jarak,2)} m)")
+    else:
+        st.error(f"📍 Di luar area kantor ({round(jarak,2)} m)")
+else:
+    st.warning("Izinkan akses lokasi!")
 
 # ================= LOAD MASTER =================
 nama_res = supabase.table("nama").select("*").order("nama").execute()
@@ -41,6 +63,10 @@ if status != "Hadir":
 
 # ================= SUBMIT =================
 if st.button("Submit Absen"):
+
+    if not lokasi_valid:
+        st.error("Anda harus berada di area kantor untuk absen")
+        st.stop()
 
     now_wib = datetime.now(wib)
     tanggal = now_wib.strftime("%Y-%m-%d")
@@ -94,7 +120,6 @@ if mode == "Admin" and password == "risum771":
 
     if res.data:
 
-        # ambil master
         nama_master = supabase.table("nama").select("*").execute().data
         posisi_master = supabase.table("posisi").select("*").execute().data
 
@@ -121,7 +146,7 @@ if mode == "Admin" and password == "risum771":
         st.subheader("🗑 Hapus Data")
 
         pilih = st.selectbox(
-            "Pilih data yang mau dihapus",
+            "Pilih data",
             rows,
             format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}"
         )
