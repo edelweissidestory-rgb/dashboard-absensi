@@ -117,6 +117,7 @@ if mode == "Karyawan":
                 st.success("Absen pulang berhasil!")
 
 # ================= MODE ADMIN (LAPTOP) =================
+# ================= MODE ADMIN (LAPTOP) =================
 if mode == "Admin" and password == "risum771":
 
     st.divider()
@@ -127,6 +128,7 @@ if mode == "Admin" and password == "risum771":
     # ---------- TAB 1: REKAP HARI INI ----------
     with tab1:
         today = now_wib().strftime("%Y-%m-%d")
+
         res = supabase.table("absensi")\
             .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
             .eq("tanggal", today)\
@@ -146,58 +148,48 @@ if mode == "Admin" and password == "risum771":
                     "Status": r["status"],
                     "Keterangan": r["keterangan"]
                 })
+
             df = pd.DataFrame(rows)
             st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-            st.subheader("🗑 Hapus Data")
-            pilih = st.selectbox(
-                "Pilih data",
-                rows,
-                format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}"
-            )
-            if st.button("Hapus Data"):
-                supabase.table("absensi").delete().eq("id", pilih["ID"]).execute()
-                st.success("Data berhasil dihapus")
-                st.rerun()
         else:
             st.info("Belum ada absensi hari ini")
 
     # ---------- TAB 2: REKAP BULANAN ----------
-    # ---------- TAB 2: REKAP BULANAN ----------
-with tab2:
-    bulan = st.selectbox("Bulan", list(range(1, 13)))
-    tahun = st.selectbox("Tahun", list(range(2024, 2031)))
+    with tab2:
+        bulan = st.selectbox("Bulan", list(range(1, 13)))
+        tahun = st.selectbox("Tahun", list(range(2024, 2031)))
 
-    from calendar import monthrange
-    jumlah_hari = monthrange(tahun, bulan)[1]
+        from calendar import monthrange
+        jumlah_hari = monthrange(tahun, bulan)[1]
 
-    res = supabase.table("absensi")\
-        .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
-        .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
-        .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
-        .order("tanggal")\
-        .execute()
+        res = supabase.table("absensi")\
+            .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
+            .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
+            .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
+            .order("tanggal")\
+            .execute()
 
-    if res.data:
-        rows = []
-        for r in res.data:
-            rows.append({
-                "Nama": nama_map.get(r["nama_id"], "-"),
-                "Posisi": posisi_map.get(r["posisi_id"], "-"),
-                "Tanggal": r["tanggal"],
-                "Jam Masuk": r["jam_masuk"],
-                "Jam Pulang": r["jam_pulang"],
-                "Status": r["status"],
-                "Keterangan": r["keterangan"]
-            })
+        if res.data:
+            rows = []
+            for r in res.data:
+                rows.append({
+                    "Nama": nama_map.get(r["nama_id"], "-"),
+                    "Posisi": posisi_map.get(r["posisi_id"], "-"),
+                    "Tanggal": r["tanggal"],
+                    "Jam Masuk": r["jam_masuk"],
+                    "Jam Pulang": r["jam_pulang"],
+                    "Status": r["status"],
+                    "Keterangan": r["keterangan"]
+                })
 
-        df = pd.DataFrame(rows)
-        st.dataframe(df, use_container_width=True)
+            df = pd.DataFrame(rows)
+            st.dataframe(df, use_container_width=True)
 
-    else:
-        st.info("Belum ada data bulan ini")
+        else:
+            st.info("Belum ada data bulan ini")
 
-    # ---------- TAB 3: SEMUA DATA (opsional) ----------
+    # ---------- TAB 3: SEMUA DATA ----------
     with tab3:
         res = supabase.table("absensi")\
             .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
@@ -217,9 +209,9 @@ with tab2:
                     "Status": r["status"],
                     "Keterangan": r["keterangan"]
                 })
+
             df = pd.DataFrame(rows)
             st.dataframe(df, use_container_width=True)
+
         else:
             st.info("Belum ada data")
-
-
