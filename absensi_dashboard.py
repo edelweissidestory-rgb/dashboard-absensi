@@ -1,5 +1,4 @@
 import streamlit as st
-import sqlite3
 from datetime import datetime
 import pytz
 import time
@@ -7,14 +6,12 @@ from geopy.distance import geodesic
 from streamlit_js_eval import get_geolocation
 
 # ================== Koneksi Database ==================
-conn = sqlite3.connect("absensi.db", check_same_thread=False)
-c = conn.cursor()
-# Tambah kolom jam_pulang kalau belum ada
-try:
-    c.execute("ALTER TABLE absensi ADD COLUMN jam_pulang TEXT")
-    conn.commit()
-except:
-    pass
+from supabase import create_client
+
+SUPABASE_URL = "https://jogrrtkttwzlqkveujxa.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 from streamlit_autorefresh import st_autorefresh
@@ -187,15 +184,15 @@ else:
     st.warning("Izinkan akses lokasi untuk melakukan absensi!")
 
 # ================== Pilih Nama ==================
-c.execute("SELECT id, nama FROM nama ORDER BY nama")
-nama_options = c.fetchall()
-nama_dict = {n[1]: n[0] for n in nama_options}
+response = supabase.table("nama").select("*").order("nama").execute()
+nama_options = response.data
+nama_dict = {n["nama"]: n["id"] for n in nama_options}
 selected_nama = st.selectbox("Pilih Nama", list(nama_dict.keys()))
 
 # ================== Pilih Posisi ==================
-c.execute("SELECT id, posisi FROM posisi")
-posisi_options = c.fetchall()
-posisi_dict = {p[1]: p[0] for p in posisi_options}
+response = supabase.table("posisi").select("*").order("posisi").execute()
+posisi_options = response.data
+posisi_dict = {p["posisi"]: p["id"] for p in posisi_options}
 selected_posisi = st.selectbox("Posisi", list(posisi_dict.keys()))
 
 # ================== Datang / Pulang ==================
@@ -232,18 +229,14 @@ if st.button("Submit Absen"):
             if exists:
                 st.warning("Kamu sudah absen datang hari ini!")
             else:
-                c.execute("""
-                    INSERT INTO absensi (nama_id, posisi_id, tanggal, status, jam_masuk, keterangan)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    nama_dict[selected_nama],
-                    posisi_dict[selected_posisi],
-                    tanggal,
-                    status,  # Hadir / Izin / Sakit
-                    jam_sekarang,
-                    keterangan
-                ))
-                conn.commit()
+                supabase.table("absensi").insert({
+                      "nama_id": nama_dict[selected_nama],
+                      "posisi_id": posisi_dict[selected_posisi],
+                      "tanggal": tanggal,
+                      "jam_masuk": jam_sekarang,
+                      "status": status,
+                      "keterangan": keterangan
+                }).execute()
                 st.success("Absen Datang berhasil!")
 
         # ================= PULANG =================
@@ -258,12 +251,11 @@ if st.button("Submit Absen"):
             if not data:
                 st.warning("Kamu belum absen datang!")
             else:
-                c.execute("""
-                    UPDATE absensi
-                    SET jam_pulang=?
-                    WHERE nama_id=? AND tanggal=?
-                """, (jam_sekarang, nama_dict[selected_nama], tanggal))
-                conn.commit()
+                supabase.table("absensi") \
+                    .update({"jam_pulang": jam_sekarang}) \
+                    .eq("nama_id", nama_dict[selected_nama]) \
+                    .eq("tanggal", tanggal) \
+                    .execute()
                 st.success("Absen Pulang berhasil!")
 # ================== REKAP ADMIN ==================
 # ================== REKAP ADMIN ==================
@@ -281,18 +273,13 @@ if mode == "Admin" and password == "risum771":
         wib = pytz.timezone("Asia/Jakarta")
         today = datetime.now(wib).strftime("%Y-%m-%d")
 
-        c.execute("""
-        SELECT a.id, n.nama, p.posisi, a.tanggal,
-               a.jam_masuk, a.jam_pulang,
-               a.status, a.keterangan
-        FROM absensi a
-        JOIN nama n ON a.nama_id = n.id
-        JOIN posisi p ON a.posisi_id = p.id
-        WHERE a.tanggal = ?
-        ORDER BY a.jam_masuk ASC
-        """, (today,))
+        response = supabase.table("absensi") \
+            .select("*, nama(nama), posisi(posisi)") \
+            .eq("tanggal", today) \
+            .order("jam_masuk") \
+            .execute()
 
-        data = c.fetchall()
+        data = response.data
 
         if data:
             import pandas as pd
@@ -325,19 +312,14 @@ if mode == "Admin" and password == "risum771":
             list(range(2024, 2031))
         )
 
-        c.execute("""
-        SELECT a.id, n.nama, p.posisi, a.tanggal,
-               a.jam_masuk, a.jam_pulang,
-               a.status, a.keterangan
-        FROM absensi a
-        JOIN nama n ON a.nama_id = n.id
-        JOIN posisi p ON a.posisi_id = p.id
-        WHERE strftime('%m', a.tanggal) = ?
-        AND strftime('%Y', a.tanggal) = ?
-        ORDER BY a.tanggal ASC
-        """, (str(bulan).zfill(2), str(tahun)))
+        response = supabase.table("absensi") \
+            .select("*, nama(nama), posisi(posisi)") \
+            .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01") \
+            .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31") \
+            .execute()
 
-        data_bulan = c.fetchall()
+        data_bulan = response.data
+        
 
         if data_bulan:
 
@@ -365,3 +347,4 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data absensi bulan ini")
+
