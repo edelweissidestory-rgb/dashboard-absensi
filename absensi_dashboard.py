@@ -21,7 +21,7 @@ from streamlit_autorefresh import st_autorefresh
 col1, col2, col3 = st.columns([1,2,1])
 
 with col2:
-    st.image("logo.png", width=100)
+    st.image("logo.png", width=200)
     st.markdown("<h1 style='text-align:center;'>Dashboard Absensi Staff PT RISUM</h1>", unsafe_allow_html=True)
 
 # auto refresh tiap 1 detik
@@ -283,5 +283,6 @@ if mode == "Admin" and password == "risum771":
     else:
 
         st.info("Belum ada absensi hari ini")
+
 
 
