@@ -18,10 +18,11 @@ except:
 
 from streamlit_autorefresh import st_autorefresh
 
-st.markdown("<h1>📊 Dashboard Absensi Staff PT RISUM</h1>", unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1,2,1])
 
-# tampilkan logo
-st.image("logo.png", width=150)
+with col2:
+    st.image("logo.png", width=100)
+    st.markdown("<h1 style='text-align:center;'>Dashboard Absensi Staff PT RISUM</h1>", unsafe_allow_html=True)
 
 # auto refresh tiap 1 detik
 st_autorefresh(interval=1000, key="clockrefresh")
@@ -282,4 +283,5 @@ if mode == "Admin" and password == "risum771":
     else:
 
         st.info("Belum ada absensi hari ini")
+
 
