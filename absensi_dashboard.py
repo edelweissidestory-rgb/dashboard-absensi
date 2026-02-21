@@ -165,43 +165,22 @@ if mode == "Admin" and password == "risum771":
         .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-31")\
         .execute()
 
-        if res.data:
-            rows = []
-            for r in res.data:
-                rows.append({
-                    "ID": r["id"],
-                    "Nama": r["nama"]["nama"],
-                    "Posisi": r["posisi"]["posisi"],
-                    "Tanggal": r["tanggal"],
-                    "Jam Datang": r["jam_masuk"],
-                    "Jam Pulang": r["jam_pulang"],
-                    "Status": r["status"],
-                    "Keterangan": r["keterangan"]
-                })
+    if res.data:
+        rows = []
+        for r in res.data:
+            rows.append({
+                "ID": r["id"],
+                "Nama": r["nama"]["nama"],
+                "Posisi": r["posisi"]["posisi"],
+                "Tanggal": r["tanggal"],
+                "Jam Datang": r["jam_masuk"],
+                "Jam Pulang": r["jam_pulang"],
+                "Status": r["status"],
+                "Keterangan": r["keterangan"]
+            })
 
-            df = pd.DataFrame(rows)
-            st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
+        df = pd.DataFrame(rows)
+        st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-            # DELETE DATA
-            st.subheader("Hapus Data")
-
-            id_hapus = st.selectbox(
-                "Pilih data",
-                df["ID"].tolist(),
-                format_func=lambda x: f"{df[df['ID']==x]['Nama'].values[0]} - {df[df['ID']==x]['Tanggal'].values[0]}"
-            )
-
-            if st.button("Hapus"):
-                supabase.table("absensi").delete().eq("id", id_hapus).execute()
-                st.success("Data dihapus")
-                st.rerun()
-
-        else:
-            st.info("Belum ada data bulan ini")
-
-
-
-
-
-
-
+    else:
+        st.info("Belum ada data bulan ini")
