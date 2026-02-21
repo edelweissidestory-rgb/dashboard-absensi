@@ -120,8 +120,25 @@ if mode == "Admin" and password == "risum771":
 
         df = pd.DataFrame(rows)
         st.dataframe(df, use_container_width=True)
+        st.subheader("Hapus Data Absensi")
+
+id_hapus = st.selectbox(
+    "Pilih data yang mau dihapus",
+    res.data,
+    format_func=lambda x: f"{x['tanggal']} - {x['nama_id']} - {x['status']}"
+)
+
+if st.button("Hapus Data"):
+    supabase.table("absensi")\
+        .delete()\
+        .eq("id", id_hapus["id"])\
+        .execute()
+
+    st.success("Data berhasil dihapus")
+    st.rerun()
 
     else:
         st.info("Belum ada data absensi")
+
 
 
