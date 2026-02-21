@@ -217,8 +217,8 @@ if st.button("Submit Absen"):
         import pytz
         wib = pytz.timezone("Asia/Jakarta")
         now_wib = datetime.now(wib)
-        tanggal = datetime.now().strftime("%Y-%m-%d")
-        jam_sekarang = datetime.now().strftime("%H:%M:%S")
+        tanggal = now_wib.strftime("%Y-%m-%d")
+        jam_sekarang = now_wib.strftime("%H:%M:%S")
 
         # ================= DATANG =================
         if datang_pulang == "Datang":
@@ -277,7 +277,8 @@ if mode == "Admin" and password == "risum771":
     # ================= TAB HARIAN =================
     with tab1:
 
-        today = datetime.now().strftime("%Y-%m-%d")
+        wib = pytz.timezone("Asia/Jakarta")
+        today = datetime.now(wib).strftime("%Y-%m-%d")
 
         c.execute("""
         SELECT a.id, n.nama, p.posisi, a.tanggal,
@@ -351,5 +352,6 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data absensi bulan ini")
+
 
 
