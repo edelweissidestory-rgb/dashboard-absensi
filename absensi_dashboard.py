@@ -26,8 +26,11 @@ if mode == "Admin":
 nama_res = supabase.table("nama").select("*").order("nama").execute()
 posisi_res = supabase.table("posisi").select("*").order("posisi").execute()
 
-nama_dict = {n["nama"]: n["id"] for n in nama_res.data}
-posisi_dict = {p["posisi"]: p["id"] for p in posisi_res.data}
+nama_options = nama_res.data
+posisi_options = posisi_res.data
+
+nama_dict = {n["nama"]: n["id"] for n in nama_options}
+posisi_dict = {p["posisi"]: p["id"] for p in posisi_options}
 
 selected_nama = st.selectbox("Pilih Nama", list(nama_dict.keys()))
 selected_posisi = st.selectbox("Posisi", list(posisi_dict.keys()))
@@ -82,16 +85,28 @@ if st.button("Submit Absen"):
 if mode == "Admin" and password == "risum771":
 
     st.divider()
-    st.subheader("Rekap Absensi")
+    st.subheader("📊 Rekap Absensi")
 
-    res = supabase.table("absensi").select("*").order("tanggal", desc=True).execute()
+    res = supabase.table("absensi")\
+        .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
+        .order("tanggal", desc=True)\
+        .execute()
 
     if res.data:
+
+        # ambil master nama & posisi
+        nama_master = supabase.table("nama").select("*").execute().data
+        posisi_master = supabase.table("posisi").select("*").execute().data
+
+        nama_map = {n["id"]: n["nama"] for n in nama_master}
+        posisi_map = {p["id"]: p["posisi"] for p in posisi_master}
+
         rows = []
+
         for r in res.data:
             rows.append({
-                "Nama ID": r["nama_id"],
-                "Posisi ID": r["posisi_id"],
+                "Nama": nama_map.get(r["nama_id"], "-"),
+                "Posisi": posisi_map.get(r["posisi_id"], "-"),
                 "Tanggal": r["tanggal"],
                 "Jam Masuk": r["jam_masuk"],
                 "Jam Pulang": r["jam_pulang"],
