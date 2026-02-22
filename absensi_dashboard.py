@@ -18,7 +18,7 @@ def now_wib():
     return datetime.now(wib)
 
 st.markdown(f"### 🕒 {now_wib().strftime('%A, %d %B %Y | %H:%M:%S')}")
-st.title("Dashboard Absensi Staff PT RISUM")
+st.title("Presensi Karyawan PT Risum Indo Lestari")
 
 # ================= MODE =================
 mode = st.sidebar.selectbox("Login Sebagai", ["Karyawan", "Admin"])
@@ -232,5 +232,6 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data")
+
 
 
