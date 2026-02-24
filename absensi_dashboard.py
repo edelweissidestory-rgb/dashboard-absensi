@@ -1,6 +1,5 @@
 import streamlit as st
 from datetime import datetime
-from streamlit_autorefresh import st_autorefresh
 import pytz
 from supabase import create_client
 import pandas as pd
@@ -17,9 +16,6 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 wib = pytz.timezone("Asia/Jakarta")
 def now_wib():
     return datetime.now(wib)
-
-# auto refresh tiap 1 detik
-st_autorefresh(interval=1000, key="clock")
 
 st.markdown(f"### 🕒 {now_wib().strftime('%A, %d %B %Y | %H:%M:%S')}")
 st.title("Presensi Karyawan PT Risum Indo Lestari")
@@ -236,6 +232,7 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data")
+
 
 
 
