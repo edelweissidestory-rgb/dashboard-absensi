@@ -260,5 +260,5 @@ if mode == "Admin" and password == "risum771":
             .execute()
 
         tampilkan_data(res, "semua")
-```
+
 
