@@ -9,7 +9,7 @@ from streamlit_js_eval import get_geolocation
 
 # ================= SUPABASE =================
 SUPABASE_URL = "https://jogrrtkttwzlqkveujxa.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3JydGt0dHd6bHFrdmV1anhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2OTI3NDQsImV4cCI6MjA4NzI2ODc0NH0.5tSvQvbqXTNCukMpWE6KDzDmzZLkaCGcRxHr0zATDqw"
+SUPABASE_KEY = "ISI_SUPABASE_KEY_KAMU"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= WAKTU =================
@@ -79,12 +79,10 @@ def generate_csv(res):
 if mode == "Karyawan":
 
     st.subheader("📱 Absensi Karyawan")
-
     lokasi_valid = gps_block()
 
     selected_nama = st.selectbox("Pilih Nama", list(nama_dict.keys()))
     selected_posisi = st.selectbox("Posisi", list(posisi_dict.keys()))
-
     datang_pulang = st.radio("Datang / Pulang", ["Datang", "Pulang"], horizontal=True)
     status = st.radio("Status", ["Hadir", "Izin", "Sakit", "Lembur"], horizontal=True)
 
@@ -95,7 +93,7 @@ if mode == "Karyawan":
     if st.button("Submit Absen", use_container_width=True):
 
         if not lokasi_valid:
-            st.error("Anda harus berada di area kantor untuk absen")
+            st.error("Harus berada di area kantor")
             st.stop()
 
         tanggal = now_wib().strftime("%Y-%m-%d")
@@ -105,6 +103,7 @@ if mode == "Karyawan":
             .select("*")\
             .eq("nama_id", nama_dict[selected_nama])\
             .eq("tanggal", tanggal)\
+            .eq("is_deleted", False)\
             .execute()
 
         if datang_pulang == "Datang":
@@ -117,7 +116,8 @@ if mode == "Karyawan":
                     "tanggal": tanggal,
                     "jam_masuk": jam,
                     "status": status,
-                    "keterangan": keterangan
+                    "keterangan": keterangan,
+                    "is_deleted": False
                 }).execute()
                 st.success("Absen datang berhasil!")
 
@@ -129,6 +129,7 @@ if mode == "Karyawan":
                     .update({"jam_pulang": jam})\
                     .eq("nama_id", nama_dict[selected_nama])\
                     .eq("tanggal", tanggal)\
+                    .eq("is_deleted", False)\
                     .execute()
                 st.success("Absen pulang berhasil!")
 
@@ -138,12 +139,13 @@ if mode == "Admin" and password == "risum771":
     st.divider()
     st.header("💻 Dashboard Admin")
 
-    tab1, tab2, tab3 = st.tabs(["Hari Ini", "Bulanan", "Semua Data"])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["Hari Ini", "Bulanan", "Semua Data", "♻️ Data Terhapus"]
+    )
 
     def tampilkan_data(res, prefix):
-
         if not res.data:
-            st.info("Belum ada data.")
+            st.info("Tidak ada data.")
             return
 
         rows = [{
@@ -160,19 +162,14 @@ if mode == "Admin" and password == "risum771":
         df = pd.DataFrame(rows)
         st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-        # ===== BACKUP CSV =====
         csv_data = generate_csv(res)
         if csv_data:
             st.download_button(
                 "⬇️ Backup CSV",
                 csv_data,
                 f"backup_{prefix}_{now_wib().strftime('%Y%m%d_%H%M')}.csv",
-                "text/csv",
-                key=f"{prefix}_backup"
+                "text/csv"
             )
-
-        st.divider()
-        st.subheader("✏️ Edit / Hapus Data")
 
         selected = st.selectbox(
             "Pilih Data",
@@ -181,84 +178,97 @@ if mode == "Admin" and password == "risum771":
             key=f"{prefix}_select"
         )
 
-        # ===== EDIT =====
-        with st.expander("Edit Data"):
+        with st.expander("✏️ Edit Data"):
+            edit_status = st.selectbox(
+                "Status",
+                ["Hadir","Izin","Sakit","Lembur"],
+                index=["Hadir","Izin","Sakit","Lembur"].index(selected["Status"]),
+                key=f"{prefix}_status"
+            )
 
-            edit_nama = st.selectbox("Nama", list(nama_dict.keys()),
-                                     index=list(nama_dict.keys()).index(selected["Nama"]),
-                                     key=f"{prefix}_nama")
-
-            edit_posisi = st.selectbox("Posisi", list(posisi_dict.keys()),
-                                       index=list(posisi_dict.keys()).index(selected["Posisi"]),
-                                       key=f"{prefix}_posisi")
-
-            edit_tanggal = st.date_input("Tanggal",
-                                         pd.to_datetime(selected["Tanggal"]),
-                                         key=f"{prefix}_tanggal")
-
-            edit_jam_masuk = st.text_input("Jam Masuk", selected["Jam Masuk"], key=f"{prefix}_masuk")
-            edit_jam_pulang = st.text_input("Jam Pulang", selected["Jam Pulang"], key=f"{prefix}_pulang")
-
-            edit_status = st.selectbox("Status", ["Hadir","Izin","Sakit","Lembur"],
-                                       index=["Hadir","Izin","Sakit","Lembur"].index(selected["Status"]),
-                                       key=f"{prefix}_status")
-
-            edit_keterangan = st.text_area("Keterangan", selected["Keterangan"], key=f"{prefix}_ket")
-
-            if st.button("💾 Simpan", key=f"{prefix}_save"):
-                supabase.table("absensi").update({
-                    "nama_id": nama_dict[edit_nama],
-                    "posisi_id": posisi_dict[edit_posisi],
-                    "tanggal": str(edit_tanggal),
-                    "jam_masuk": edit_jam_masuk,
-                    "jam_pulang": edit_jam_pulang,
-                    "status": edit_status,
-                    "keterangan": edit_keterangan
-                }).eq("id", selected["ID"]).execute()
-
-                st.success("Data berhasil diperbarui.")
+            if st.button("Simpan Perubahan", key=f"{prefix}_save"):
+                supabase.table("absensi")\
+                    .update({"status": edit_status})\
+                    .eq("id", selected["ID"])\
+                    .execute()
+                st.success("Data diperbarui")
                 st.rerun()
 
-        # ===== DELETE AMAN =====
-        with st.expander("🗑 Hapus Data"):
-
-            confirm = st.checkbox("Saya yakin ingin menghapus data ini", key=f"{prefix}_confirm")
-
+        with st.expander("🗑 Hapus Data (Soft Delete)"):
+            confirm = st.checkbox("Saya yakin ingin menghapus", key=f"{prefix}_confirm")
             if confirm:
-                if st.button("Hapus Permanen", key=f"{prefix}_delete"):
-                    supabase.table("absensi").delete().eq("id", selected["ID"]).execute()
-                    st.success("Data berhasil dihapus.")
+                if st.button("Hapus Sekarang", key=f"{prefix}_delete"):
+                    supabase.table("absensi")\
+                        .update({"is_deleted": True})\
+                        .eq("id", selected["ID"])\
+                        .execute()
+                    st.success("Data dipindahkan ke Data Terhapus")
                     st.rerun()
 
-    # TAB HARI INI
+    # TAB 1
     with tab1:
         today = now_wib().strftime("%Y-%m-%d")
-        res = supabase.table("absensi").select("*").eq("tanggal", today).order("jam_masuk").execute()
+        res = supabase.table("absensi")\
+            .select("*")\
+            .eq("tanggal", today)\
+            .eq("is_deleted", False)\
+            .execute()
         tampilkan_data(res, "hariini")
 
-    # TAB BULANAN
+    # TAB 2
     with tab2:
-        bulan = st.selectbox("Bulan", list(range(1,13)), key="bulan")
-        tahun = st.selectbox("Tahun", list(range(2024,2031)), key="tahun")
-
+        bulan = st.selectbox("Bulan", list(range(1,13)))
+        tahun = st.selectbox("Tahun", list(range(2024,2031)))
         jumlah_hari = monthrange(tahun, bulan)[1]
 
         res = supabase.table("absensi")\
             .select("*")\
             .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
             .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
-            .order("tanggal")\
+            .eq("is_deleted", False)\
             .execute()
 
         tampilkan_data(res, "bulanan")
 
-    # TAB SEMUA DATA
+    # TAB 3
     with tab3:
         res = supabase.table("absensi")\
             .select("*")\
+            .eq("is_deleted", False)\
             .order("tanggal", desc=True)\
             .execute()
-
         tampilkan_data(res, "semua")
 
+    # TAB 4 - RESTORE
+    with tab4:
+        st.subheader("♻️ Data Terhapus")
 
+        res = supabase.table("absensi")\
+            .select("*")\
+            .eq("is_deleted", True)\
+            .execute()
+
+        if not res.data:
+            st.info("Tidak ada data terhapus.")
+        else:
+            rows = [{
+                "ID": r["id"],
+                "Nama": nama_map.get(r["nama_id"], "-"),
+                "Tanggal": r["tanggal"],
+                "Status": r["status"]
+            } for r in res.data]
+
+            selected = st.selectbox(
+                "Pilih data untuk restore",
+                rows,
+                format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}"
+            )
+
+            if st.button("Restore Data"):
+                supabase.table("absensi")\
+                    .update({"is_deleted": False})\
+                    .eq("id", selected["ID"])\
+                    .execute()
+
+                st.success("Data berhasil direstore")
+                st.rerun()
