@@ -144,6 +144,7 @@ if mode == "Admin" and password == "risum771":
     )
 
     def tampilkan_data(res, prefix):
+
         if not res.data:
             st.info("Tidak ada data.")
             return
@@ -168,7 +169,8 @@ if mode == "Admin" and password == "risum771":
                 "⬇️ Backup CSV",
                 csv_data,
                 f"backup_{prefix}_{now_wib().strftime('%Y%m%d_%H%M')}.csv",
-                "text/csv"
+                "text/csv",
+                key=f"{prefix}_backup"
             )
 
         selected = st.selectbox(
@@ -178,7 +180,41 @@ if mode == "Admin" and password == "risum771":
             key=f"{prefix}_select"
         )
 
-        with st.expander("✏️ Edit Data"):
+        # ========= EDIT SEMUA KOLOM =========
+        with st.expander("✏️ Edit Data Lengkap"):
+
+            edit_nama = st.selectbox(
+                "Nama",
+                list(nama_dict.keys()),
+                index=list(nama_dict.keys()).index(selected["Nama"]),
+                key=f"{prefix}_nama"
+            )
+
+            edit_posisi = st.selectbox(
+                "Posisi",
+                list(posisi_dict.keys()),
+                index=list(posisi_dict.keys()).index(selected["Posisi"]),
+                key=f"{prefix}_posisi"
+            )
+
+            edit_tanggal = st.date_input(
+                "Tanggal",
+                pd.to_datetime(selected["Tanggal"]),
+                key=f"{prefix}_tanggal"
+            )
+
+            edit_jam_masuk = st.text_input(
+                "Jam Masuk (HH:MM:SS)",
+                selected["Jam Masuk"] or "",
+                key=f"{prefix}_masuk"
+            )
+
+            edit_jam_pulang = st.text_input(
+                "Jam Pulang (HH:MM:SS)",
+                selected["Jam Pulang"] or "",
+                key=f"{prefix}_pulang"
+            )
+
             edit_status = st.selectbox(
                 "Status",
                 ["Hadir","Izin","Sakit","Lembur"],
@@ -186,16 +222,35 @@ if mode == "Admin" and password == "risum771":
                 key=f"{prefix}_status"
             )
 
-            if st.button("Simpan Perubahan", key=f"{prefix}_save"):
-                supabase.table("absensi")\
-                    .update({"status": edit_status})\
-                    .eq("id", selected["ID"])\
-                    .execute()
-                st.success("Data diperbarui")
+            edit_keterangan = st.text_area(
+                "Keterangan",
+                selected["Keterangan"] or "",
+                key=f"{prefix}_ket"
+            )
+
+            if st.button("💾 Simpan Semua Perubahan", key=f"{prefix}_save"):
+
+                supabase.table("absensi").update({
+                    "nama_id": nama_dict[edit_nama],
+                    "posisi_id": posisi_dict[edit_posisi],
+                    "tanggal": str(edit_tanggal),
+                    "jam_masuk": edit_jam_masuk,
+                    "jam_pulang": edit_jam_pulang,
+                    "status": edit_status,
+                    "keterangan": edit_keterangan
+                }).eq("id", selected["ID"]).execute()
+
+                st.success("Data berhasil diperbarui.")
                 st.rerun()
 
+        # ========= SOFT DELETE =========
         with st.expander("🗑 Hapus Data (Soft Delete)"):
-            confirm = st.checkbox("Saya yakin ingin menghapus", key=f"{prefix}_confirm")
+
+            confirm = st.checkbox(
+                "Saya yakin ingin menghapus data ini",
+                key=f"{prefix}_confirm"
+            )
+
             if confirm:
                 if st.button("Hapus Sekarang", key=f"{prefix}_delete"):
                     supabase.table("absensi")\
@@ -205,20 +260,21 @@ if mode == "Admin" and password == "risum771":
                     st.success("Data dipindahkan ke Data Terhapus")
                     st.rerun()
 
-    # TAB 1
+    # TAB HARI INI
     with tab1:
         today = now_wib().strftime("%Y-%m-%d")
         res = supabase.table("absensi")\
             .select("*")\
             .eq("tanggal", today)\
             .eq("is_deleted", False)\
+            .order("jam_masuk")\
             .execute()
         tampilkan_data(res, "hariini")
 
-    # TAB 2
+    # TAB BULANAN
     with tab2:
-        bulan = st.selectbox("Bulan", list(range(1,13)))
-        tahun = st.selectbox("Tahun", list(range(2024,2031)))
+        bulan = st.selectbox("Bulan", list(range(1,13)), key="bulan")
+        tahun = st.selectbox("Tahun", list(range(2024,2031)), key="tahun")
         jumlah_hari = monthrange(tahun, bulan)[1]
 
         res = supabase.table("absensi")\
@@ -226,11 +282,12 @@ if mode == "Admin" and password == "risum771":
             .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
             .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
             .eq("is_deleted", False)\
+            .order("tanggal")\
             .execute()
 
         tampilkan_data(res, "bulanan")
 
-    # TAB 3
+    # TAB SEMUA DATA
     with tab3:
         res = supabase.table("absensi")\
             .select("*")\
@@ -239,13 +296,14 @@ if mode == "Admin" and password == "risum771":
             .execute()
         tampilkan_data(res, "semua")
 
-    # TAB 4 - RESTORE
+    # TAB RESTORE
     with tab4:
         st.subheader("♻️ Data Terhapus")
 
         res = supabase.table("absensi")\
             .select("*")\
             .eq("is_deleted", True)\
+            .order("tanggal", desc=True)\
             .execute()
 
         if not res.data:
@@ -272,4 +330,3 @@ if mode == "Admin" and password == "risum771":
 
                 st.success("Data berhasil direstore")
                 st.rerun()
-
