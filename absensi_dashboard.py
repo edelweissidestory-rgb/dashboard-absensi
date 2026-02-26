@@ -124,8 +124,7 @@ if mode == "Admin" and password == "risum771":
 
     tab1, tab2, tab3 = st.tabs(["Hari Ini", "Bulanan", "Semua Data"])
 
-    # ===== fungsi edit (FIX DUPLICATE KEY) =====
-    def edit_form(edit_data, prefix):
+    def edit_delete_form(edit_data, prefix):
 
         st.subheader("✏️ Edit Data Absensi")
 
@@ -158,31 +157,32 @@ if mode == "Admin" and password == "risum771":
                                        edit_data["Keterangan"],
                                        key=f"{prefix}_ket")
 
-        if st.button("💾 Simpan Perubahan", key=f"{prefix}_simpan"):
-            supabase.table("absensi").update({
-                "nama_id": nama_dict[edit_nama],
-                "posisi_id": posisi_dict[edit_posisi],
-                "tanggal": str(edit_tanggal),
-                "jam_masuk": edit_jam_masuk,
-                "jam_pulang": edit_jam_pulang,
-                "status": edit_status,
-                "keterangan": edit_keterangan
-            }).eq("id", edit_data["ID"]).execute()
+        col1, col2 = st.columns(2)
 
-            st.success("Data berhasil diupdate")
-            st.rerun()
+        with col1:
+            if st.button("💾 Simpan Perubahan", key=f"{prefix}_simpan"):
+                supabase.table("absensi").update({
+                    "nama_id": nama_dict[edit_nama],
+                    "posisi_id": posisi_dict[edit_posisi],
+                    "tanggal": str(edit_tanggal),
+                    "jam_masuk": edit_jam_masuk,
+                    "jam_pulang": edit_jam_pulang,
+                    "status": edit_status,
+                    "keterangan": edit_keterangan
+                }).eq("id", edit_data["ID"]).execute()
 
-    # ---------- TAB HARI INI ----------
-    with tab1:
-        today = now_wib().strftime("%Y-%m-%d")
+                st.success("Data berhasil diupdate")
+                st.rerun()
 
-        res = supabase.table("absensi")\
-            .select("*")\
-            .eq("tanggal", today)\
-            .order("jam_masuk")\
-            .execute()
+        with col2:
+            if st.button("🗑 Hapus Data", key=f"{prefix}_hapus"):
+                supabase.table("absensi").delete().eq("id", edit_data["ID"]).execute()
+                st.success("Data berhasil dihapus")
+                st.rerun()
 
+    def tampilkan_data(res, prefix):
         if res.data:
+
             rows = [{
                 "ID": r["id"],
                 "Nama": nama_map.get(r["nama_id"], "-"),
@@ -197,18 +197,24 @@ if mode == "Admin" and password == "risum771":
             df = pd.DataFrame(rows)
             st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-            pilih_edit = st.selectbox("Pilih data untuk edit", rows,
-                                      format_func=lambda x: f"{x['Nama']} - {x['Tanggal']}")
+            pilih = st.selectbox("Pilih data",
+                                 rows,
+                                 format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}",
+                                 key=f"{prefix}_select")
 
-            edit_form(pilih_edit, "hariini")
+            edit_delete_form(pilih, prefix)
 
         else:
-            st.info("Belum ada absensi hari ini")
+            st.info("Belum ada data")
 
-    # ---------- TAB BULANAN ----------
+    with tab1:
+        today = now_wib().strftime("%Y-%m-%d")
+        res = supabase.table("absensi").select("*").eq("tanggal", today).order("jam_masuk").execute()
+        tampilkan_data(res, "hariini")
+
     with tab2:
-        bulan = st.selectbox("Bulan", list(range(1, 13)))
-        tahun = st.selectbox("Tahun", list(range(2024, 2031)))
+        bulan = st.selectbox("Bulan", list(range(1,13)), key="bulan")
+        tahun = st.selectbox("Tahun", list(range(2024,2031)), key="tahun")
         jumlah_hari = monthrange(tahun, bulan)[1]
 
         res = supabase.table("absensi")\
@@ -218,49 +224,12 @@ if mode == "Admin" and password == "risum771":
             .order("tanggal").order("jam_masuk")\
             .execute()
 
-        if res.data:
-            rows = [{
-                "ID": r["id"],
-                "Nama": nama_map.get(r["nama_id"], "-"),
-                "Posisi": posisi_map.get(r["posisi_id"], "-"),
-                "Tanggal": r["tanggal"],
-                "Jam Masuk": r["jam_masuk"],
-                "Jam Pulang": r["jam_pulang"],
-                "Status": r["status"],
-                "Keterangan": r["keterangan"]
-            } for r in res.data]
+        tampilkan_data(res, "bulanan")
 
-            df = pd.DataFrame(rows)
-            st.dataframe(df, use_container_width=True)
-
-            pilih_edit = st.selectbox("Pilih data untuk edit", rows,
-                                      format_func=lambda x: f"{x['Nama']} - {x['Tanggal']}")
-
-            edit_form(pilih_edit, "bulanan")
-
-    # ---------- TAB SEMUA DATA ----------
     with tab3:
         res = supabase.table("absensi")\
             .select("*")\
             .order("tanggal", desc=True).order("jam_masuk", desc=True)\
             .execute()
 
-        if res.data:
-            rows = [{
-                "ID": r["id"],
-                "Nama": nama_map.get(r["nama_id"], "-"),
-                "Posisi": posisi_map.get(r["posisi_id"], "-"),
-                "Tanggal": r["tanggal"],
-                "Jam Masuk": r["jam_masuk"],
-                "Jam Pulang": r["jam_pulang"],
-                "Status": r["status"],
-                "Keterangan": r["keterangan"]
-            } for r in res.data]
-
-            df = pd.DataFrame(rows)
-            st.dataframe(df, use_container_width=True)
-
-            pilih_edit = st.selectbox("Pilih data untuk edit", rows,
-                                      format_func=lambda x: f"{x['Nama']} - {x['Tanggal']}")
-
-            edit_form(pilih_edit, "semua")
+        tampilkan_data(res, "semua")
