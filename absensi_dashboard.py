@@ -131,7 +131,7 @@ if mode == "Admin" and password == "risum771":
         res = supabase.table("absensi")\
             .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
             .eq("tanggal", today)\
-            .order("jam_masuk")\
+            .order("jam_masuk", desc=False)\
             .execute()
 
         if res.data:
@@ -184,7 +184,7 @@ if mode == "Admin" and password == "risum771":
             .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
             .gte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-01")\
             .lte("tanggal", f"{tahun}-{str(bulan).zfill(2)}-{jumlah_hari}")\
-            .order("tanggal")\
+            .order("tanggal", desc=False).order("jam_masuk", desc=False)\
             .execute()
 
         if res.data:
@@ -210,7 +210,7 @@ if mode == "Admin" and password == "risum771":
     with tab3:
         res = supabase.table("absensi")\
             .select("id,nama_id,posisi_id,tanggal,jam_masuk,jam_pulang,status,keterangan")\
-            .order("tanggal", desc=True)\
+            .order("tanggal", desc=True).order("jam_masuk", desc=True)\
             .limit(1000)\
             .execute()
 
@@ -232,6 +232,7 @@ if mode == "Admin" and password == "risum771":
 
         else:
             st.info("Belum ada data")
+
 
 
 
