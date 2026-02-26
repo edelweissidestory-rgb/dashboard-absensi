@@ -124,6 +124,7 @@ if mode == "Admin" and password == "risum771":
 
     tab1, tab2, tab3 = st.tabs(["Hari Ini", "Bulanan", "Semua Data"])
 
+    # ===== EDIT + HAPUS DENGAN KONFIRMASI =====
     def edit_delete_form(edit_data, prefix):
 
         st.subheader("✏️ Edit Data Absensi")
@@ -160,7 +161,7 @@ if mode == "Admin" and password == "risum771":
         col1, col2 = st.columns(2)
 
         with col1:
-            if st.button("💾 Simpan Perubahan", key=f"{prefix}_simpan"):
+            if st.button("💾 Simpan", key=f"{prefix}_simpan"):
                 supabase.table("absensi").update({
                     "nama_id": nama_dict[edit_nama],
                     "posisi_id": posisi_dict[edit_posisi],
@@ -175,11 +176,14 @@ if mode == "Admin" and password == "risum771":
                 st.rerun()
 
         with col2:
-            if st.button("🗑 Hapus Data", key=f"{prefix}_hapus"):
-                supabase.table("absensi").delete().eq("id", edit_data["ID"]).execute()
-                st.success("Data berhasil dihapus")
-                st.rerun()
+            if st.button("🗑 Hapus", key=f"{prefix}_hapus"):
+                st.warning("Yakin ingin menghapus data ini?")
+                if st.button("YA HAPUS PERMANEN", key=f"{prefix}_confirm"):
+                    supabase.table("absensi").delete().eq("id", edit_data["ID"]).execute()
+                    st.success("Data berhasil dihapus")
+                    st.rerun()
 
+    # ===== TAMPILKAN DATA STABIL =====
     def tampilkan_data(res, prefix):
         if res.data:
 
@@ -197,21 +201,30 @@ if mode == "Admin" and password == "risum771":
             df = pd.DataFrame(rows)
             st.dataframe(df.drop(columns=["ID"]), use_container_width=True)
 
-            pilih = st.selectbox("Pilih data",
-                                 rows,
-                                 format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}",
-                                 key=f"{prefix}_select")
+            if f"{prefix}_selected" not in st.session_state:
+                st.session_state[f"{prefix}_selected"] = rows[0]
 
-            edit_delete_form(pilih, prefix)
+            pilih = st.selectbox(
+                "Pilih data",
+                rows,
+                format_func=lambda x: f"{x['Nama']} - {x['Tanggal']} - {x['Status']}",
+                key=f"{prefix}_select"
+            )
+
+            st.session_state[f"{prefix}_selected"] = pilih
+
+            edit_delete_form(st.session_state[f"{prefix}_selected"], prefix)
 
         else:
             st.info("Belum ada data")
 
+    # TAB HARI INI
     with tab1:
         today = now_wib().strftime("%Y-%m-%d")
         res = supabase.table("absensi").select("*").eq("tanggal", today).order("jam_masuk").execute()
         tampilkan_data(res, "hariini")
 
+    # TAB BULANAN
     with tab2:
         bulan = st.selectbox("Bulan", list(range(1,13)), key="bulan")
         tahun = st.selectbox("Tahun", list(range(2024,2031)), key="tahun")
@@ -226,6 +239,7 @@ if mode == "Admin" and password == "risum771":
 
         tampilkan_data(res, "bulanan")
 
+    # TAB SEMUA DATA
     with tab3:
         res = supabase.table("absensi")\
             .select("*")\
