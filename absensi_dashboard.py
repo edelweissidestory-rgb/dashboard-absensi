@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 from datetime import datetime
 import pytz
@@ -262,3 +261,4 @@ if mode == "Admin" and password == "risum771":
 
         tampilkan_data(res, "semua")
 ```
+
