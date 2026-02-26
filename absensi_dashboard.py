@@ -63,6 +63,7 @@ nama_dict, posisi_dict, nama_map, posisi_map = load_master()
 if mode == "Karyawan":
 
     st.subheader("📱 Absensi Karyawan")
+
     lokasi_valid = gps_block()
 
     selected_nama = st.selectbox("Pilih Nama", list(nama_dict.keys()))
@@ -103,6 +104,7 @@ if mode == "Karyawan":
                     "keterangan": keterangan
                 }).execute()
                 st.success("Absen datang berhasil!")
+
         else:
             if not cek.data:
                 st.warning("Belum absen datang")
@@ -122,25 +124,41 @@ if mode == "Admin" and password == "risum771":
 
     tab1, tab2, tab3 = st.tabs(["Hari Ini", "Bulanan", "Semua Data"])
 
-    # ---------- FUNGSI EDIT ----------
-    def edit_form(edit_data):
+    # ===== fungsi edit (FIX DUPLICATE KEY) =====
+    def edit_form(edit_data, prefix):
+
         st.subheader("✏️ Edit Data Absensi")
 
         edit_nama = st.selectbox("Nama", list(nama_dict.keys()),
-                                 index=list(nama_dict.keys()).index(edit_data["Nama"]))
+                                 index=list(nama_dict.keys()).index(edit_data["Nama"]),
+                                 key=f"{prefix}_nama")
+
         edit_posisi = st.selectbox("Posisi", list(posisi_dict.keys()),
-                                   index=list(posisi_dict.keys()).index(edit_data["Posisi"]))
+                                   index=list(posisi_dict.keys()).index(edit_data["Posisi"]),
+                                   key=f"{prefix}_posisi")
 
-        edit_tanggal = st.date_input("Tanggal", pd.to_datetime(edit_data["Tanggal"]))
-        edit_jam_masuk = st.text_input("Jam Masuk", edit_data["Jam Masuk"])
-        edit_jam_pulang = st.text_input("Jam Pulang", edit_data["Jam Pulang"])
+        edit_tanggal = st.date_input("Tanggal",
+                                     pd.to_datetime(edit_data["Tanggal"]),
+                                     key=f"{prefix}_tanggal")
 
-        edit_status = st.selectbox("Status", ["Hadir","Izin","Sakit","Lembur"],
-                                   index=["Hadir","Izin","Sakit","Lembur"].index(edit_data["Status"]))
+        edit_jam_masuk = st.text_input("Jam Masuk",
+                                       edit_data["Jam Masuk"],
+                                       key=f"{prefix}_jammasuk")
 
-        edit_keterangan = st.text_area("Keterangan", edit_data["Keterangan"])
+        edit_jam_pulang = st.text_input("Jam Pulang",
+                                        edit_data["Jam Pulang"],
+                                        key=f"{prefix}_jampulang")
 
-        if st.button("💾 Simpan Perubahan"):
+        edit_status = st.selectbox("Status",
+                                   ["Hadir","Izin","Sakit","Lembur"],
+                                   index=["Hadir","Izin","Sakit","Lembur"].index(edit_data["Status"]),
+                                   key=f"{prefix}_status")
+
+        edit_keterangan = st.text_area("Keterangan",
+                                       edit_data["Keterangan"],
+                                       key=f"{prefix}_ket")
+
+        if st.button("💾 Simpan Perubahan", key=f"{prefix}_simpan"):
             supabase.table("absensi").update({
                 "nama_id": nama_dict[edit_nama],
                 "posisi_id": posisi_dict[edit_posisi],
@@ -182,15 +200,15 @@ if mode == "Admin" and password == "risum771":
             pilih_edit = st.selectbox("Pilih data untuk edit", rows,
                                       format_func=lambda x: f"{x['Nama']} - {x['Tanggal']}")
 
-            edit_form(pilih_edit)
+            edit_form(pilih_edit, "hariini")
 
         else:
             st.info("Belum ada absensi hari ini")
 
     # ---------- TAB BULANAN ----------
     with tab2:
-        bulan = st.selectbox("Bulan", list(range(1,13)))
-        tahun = st.selectbox("Tahun", list(range(2024,2031)))
+        bulan = st.selectbox("Bulan", list(range(1, 13)))
+        tahun = st.selectbox("Tahun", list(range(2024, 2031)))
         jumlah_hari = monthrange(tahun, bulan)[1]
 
         res = supabase.table("absensi")\
@@ -218,7 +236,7 @@ if mode == "Admin" and password == "risum771":
             pilih_edit = st.selectbox("Pilih data untuk edit", rows,
                                       format_func=lambda x: f"{x['Nama']} - {x['Tanggal']}")
 
-            edit_form(pilih_edit)
+            edit_form(pilih_edit, "bulanan")
 
     # ---------- TAB SEMUA DATA ----------
     with tab3:
@@ -245,4 +263,4 @@ if mode == "Admin" and password == "risum771":
             pilih_edit = st.selectbox("Pilih data untuk edit", rows,
                                       format_func=lambda x: f"{x['Nama']} - {x['Tanggal']}")
 
-            edit_form(pilih_edit)
+            edit_form(pilih_edit, "semua")
